@@ -19,7 +19,6 @@ def get_text_by_title(root,lookup):
     pages = root.findall('.//page', namespaces=root.nsmap)
     for page in pages:
         title = page.find('.//title', namespaces=page.nsmap)
-        print(title.text)
         if title.text == lookup:
             return page.find('.//text', namespaces=page.nsmap)
     return None
@@ -35,6 +34,7 @@ def wikipedia_special_re():
     return '|'.join([
         infobox,
         infobox_fields,
+        end_box,
         redirects,
         links,
     ])
@@ -52,8 +52,7 @@ def ref_re():
 # Filters out links. 
 # Example: 'example.com' -> ''
 def links_re():
-    urls = "([^\s\n<>]+\.[^(\s\n<>\},\.)]+(\s|\n|\}|\|))" 
-    return urls
+    return "([^\s\n<>]+\.[^(\s\n<>\},\.)]+(\s|\n|\}|\|))" 
 
 # Filters out the beginning of an template.
 # Example: '{{color|some text' -> 'some text'
@@ -134,7 +133,6 @@ def count_word(word, word_counter):
 # Converts texts to words and adds them to a counter collection. 
 def convert_texts(texts):
     word_counter = Counter()
-    temp = texts[:3]
     for node in texts:
         if node.text:
             cleaned_text = filter_words(node.text, re_filter())
