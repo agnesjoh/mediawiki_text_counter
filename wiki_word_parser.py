@@ -1,10 +1,9 @@
 # pip install lxml
-# pip install markdown 
 from lxml import etree
 from lxml.etree import tostring
+from collections import Counter
 import sys
 import re
-from collections import Counter
 
 # Parses mediawiki xml file to element tree
 def parse_mw(filename):
@@ -15,6 +14,7 @@ def parse_mw(filename):
 def get_texts(root):
     return root.findall('.//text', namespaces=root.nsmap)
 
+# Returns the text node from the first page with a given title.
 def get_text_by_title(root,lookup):
     pages = root.findall('.//page', namespaces=root.nsmap)
     for page in pages:
@@ -23,29 +23,6 @@ def get_text_by_title(root,lookup):
         if title.text == lookup:
             return page.find('.//text', namespaces=page.nsmap)
     return None
-
-# Filters out links. 
-# Example: 'example.com' -> ''
-def links_re():
-    urls = "([^\s\n<>]+\.[^(\s\n<>\},\.)]+(\s|\n|\}|\|))" 
-    return urls
-
-# Filters out numbers. 
-# Example: '123' -> ''
-def number_re():
-    return "(\s(\d)+\s)"
-
-# Filters out markdown symbols. 
-# Example: '== Header ==' -> 'Header'
-def markdown_symbols_re():
-    sections = "(==+)"
-    bold_italics = "(''+)"
-    lists = "(\*)"
-    return '|'.join([
-        sections,
-        bold_italics,
-        lists
-    ])
 
 # Filters out mediawiki special syntax. 
 # Example: '{{ Infobox some text' -> 'some text'
@@ -62,11 +39,6 @@ def wikipedia_special_re():
         links,
     ])
 
-# Filters out special characters. 
-# Example: '={' -> ''
-def special_char_re():
-    return "([()|\{\}‘’\"\-,\=])"
-
 # Filters out refrence syntax.
 # Example: '{{cite web' -> ''
 def ref_re():
@@ -77,10 +49,28 @@ def ref_re():
         cite_Re
     ])
 
+# Filters out links. 
+# Example: 'example.com' -> ''
+def links_re():
+    urls = "([^\s\n<>]+\.[^(\s\n<>\},\.)]+(\s|\n|\}|\|))" 
+    return urls
+
 # Filters out the beginning of an template.
 # Example: '{{color|some text' -> 'some text'
 def templates_re():
     return "(\{\{(.*?\|)?)"
+
+# Filters out markdown symbols. 
+# Example: '== Header ==' -> 'Header'
+def markdown_symbols_re():
+    sections = "(==+)"
+    bold_italics = "(''+)"
+    lists = "(\*)"
+    return '|'.join([
+        sections,
+        bold_italics,
+        lists
+    ])
 
 # Filters out html tags and attributes. 
 # Example '<b class="123">some text</b>' -> 'some text'
@@ -93,6 +83,17 @@ def html_re():
         attrib,
         attrib_value
     ])
+
+# Filters out numbers. 
+# Example: '123' -> ''
+def number_re():
+    return "(\s(\d)+\s)"
+
+# Filters out special characters. 
+# Example: '={' -> ''
+def special_char_re():
+    return "([()|\{\}‘’\"\-,\=])"
+
 
 # Joins all the regex filters together and creates one.
 def re_filter():
@@ -122,11 +123,8 @@ def is_word(word):
 
 # Adds a word to a counter collection if it is valid.
 def count_word(word, word_counter):
-    #print(word)
+    # filters out all string that are not word.
     if not is_word(word): 
-        #if word not in ['','$6','-']:
-        #print(word) #safety check
-        #   quit()
         return
     key = re.sub('\s+','', word.lower())
     if not key in word_counter.keys(): 
@@ -148,3 +146,25 @@ def convert_texts(texts):
 # Returns the n most common words in a counter collection
 def get_top_words(counter, n):
     return counter.most_common(n)
+
+# Compares a word counter collection and a word list togehter and returns
+# a counter collections of words that where only in the word counter
+def filter_common(word_counter, filter_list):
+    article_specific_words = Counter()
+    for word in word_counter:
+        if word not in filter_list:
+            article_specific_words[word] = word_counter[word]
+    return article_specific_words
+
+# Reads from top_n file and returns a list of common words. 
+def get_common_words(n):
+    with open('top_{}.txt'.format(n), newline='') as csvfile:
+        rows = csv.reader(csvfile, delimiter=',')
+        return [row[0] for row in rows]
+
+# Writes to a file
+def write_output(output, filename):
+    with open(filename, 'w', newline='') as f:
+        w = csv.writer(f)
+        for word in output:
+            w.writerow(list(word))
