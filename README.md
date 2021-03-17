@@ -13,7 +13,7 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) for setup.
 
 ## Usage
 
-To get top n (default is 100) common words from collections of articles:
+To get top n (default is 100) common words from collection of articles:
 ```python
 python top_n_words.py filename.xml n
 ```
