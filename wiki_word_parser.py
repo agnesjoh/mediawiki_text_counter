@@ -2,6 +2,7 @@
 from lxml import etree
 from lxml.etree import tostring
 from collections import Counter
+import csv
 import sys
 import re
 

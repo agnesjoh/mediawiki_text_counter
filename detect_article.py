@@ -18,7 +18,7 @@ def main():
 	# get an etree from xml file
 	root = wikiparser.parse_mw(filename) 
 	# get a list of common words from top_100.txt file
-	filter_words = wikiparser.get_common_words()
+	filter_words = wikiparser.get_common_words(100)
 	# get a text from page by using the title as search lookup
 	text_node = wikiparser.get_text_by_title(root, title) 
 	# split the text into word counter collection

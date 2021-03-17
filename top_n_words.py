@@ -20,6 +20,6 @@ def main():
     top_n = wikiparser.get_top_words(word_counter, n)
     # write results to a file
     filename = 'top_{}.txt'.format(n)
-    wiki_word_parser.write_output(top_n, filename)
+    wikiparser.write_output(top_n, filename)
     
 main()
